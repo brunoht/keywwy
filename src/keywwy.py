@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageDraw
 from pystray import Icon, MenuItem, Menu
+import asyncio
 
 class Keywwy:
 
@@ -34,6 +35,7 @@ class Keywwy:
 
         # Schedule after window is created (click through)
         self.root.after(10, self.make_click_through)
+        self.loop = None
 
     def message(self, message):
         self.label.config(text=message)
@@ -54,19 +56,31 @@ class Keywwy:
     def setup_tray(self):
         icon_image = self.create_image()
         menu = Menu(
-            MenuItem('Sair', self.quit_app)
+            MenuItem('Sair', self.force_exit)
         )
         icon = Icon(self.app_name, icon_image, menu=menu)
         return icon
 
-    def quit_app(self, icon, item):
-        self.icon.stop()
-        self.root.after(0, self.root.destroy)  # Schedule destroy on main thread
-        self.root.quit()
-        os._exit(0)  # Force terminate all threads
-
-    def run(self):
+    async def run(self):
+        self.loop = asyncio.get_event_loop()
         self.icon = self.setup_tray()
+        self.root.protocol('WM_DELETE_WINDOW', lambda: self.quit_app(self.icon, None))
         self.icon.run_detached()
-        self.root.protocol('WM_DELETE_WINDOW', lambda: quit_app(icon, None))  # Handle window close
-        self.root.mainloop()
+    
+        while True:
+            try:
+                self.root.update()
+                await asyncio.sleep(0.01)
+            except TclError:
+                self.force_exit()
+            except Exception as e:
+                self.force_exit()
+
+    def force_exit(self):
+        try:
+            if self.icon: self.icon.stop()
+            keyboard.unhook_all()
+            self.root.destroy()
+        finally:
+            import os
+            os._exit(1)  # Force terminate all threads

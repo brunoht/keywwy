@@ -1,4 +1,5 @@
 import keyboard, pyautogui
+import asyncio
 
 class MouseController:
 
@@ -11,24 +12,28 @@ class MouseController:
         self.acceleration = 1 # Aceleração do mouse
         self.last_key = None # Última tecla pressionada
         self.safe_margin = 5 # Margem de segurança
-        self.activation_command = 'ctrl'
         self.keyboard.hook(self._handle_keyboard_event, suppress=self.active)
         self.modifiers = {
             'ctrl': False,
             'alt': False,
             'shift': False
         }
+        self.blocked = False
 
     def _handle_keyboard_event(self, event):
         if event.event_type == keyboard.KEY_DOWN:
-            self.handle_keypress(event)
+            if not self.blocked:
+                if not self.app.loop or self.app.loop.is_closed():
+                    return False
+                asyncio.run_coroutine_threadsafe(self.handle_keypress(event), self.app.loop)
         elif event.event_type == keyboard.KEY_UP:
             self.handle_keyrelease(event)
         return False
 
-    def handle_keypress(self, event):
+    async def handle_keypress(self, event):
+        if self.blocked: return
+        self.blocked = True
         print(f"key pressed: {event.name}")
-        
         if event.name in self.modifiers:
             if self.modifiers[event.name] == True and self.last_key == event.name:
                 self.modifiers[event.name] = False
@@ -45,6 +50,7 @@ class MouseController:
             self.handle_action(event.name)
         self.last_key = event.name
         print(f"modifiers: {self.modifiers}")
+        self.blocked = False
         return not self.active
 
     def handle_keyrelease(self, event):
@@ -80,31 +86,41 @@ class MouseController:
             case 'right':
                 self.move_right(x, y, w, h)
                 self.app.message(f"Direita")
-            case 'q':
-                self.speed_up()
-                self.app.message(f"Aumenta velocidade: {self.acceleration}")
-            case 'a':
-                self.speed_down()
-                self.app.message(f"Diminui velocidade: {self.acceleration}")
-            case 'w':
+            
+            case 'insert':
                 self.move_diagonal_up_left(x, y, w, h)
                 self.app.message(f"Diagonal superior esquerda")
-            case 'e':
+            case 'home':
                 self.move_diagonal_up_right(x, y, w, h)
                 self.app.message(f"Diagonal superior direita")
-            case 's':
+            case 'delete':
                 self.move_diagonal_down_left(x, y, w, h)
                 self.app.message(f"Diagonal inferior esquerda")
-            case 'd':
+            case 'end':
                 self.move_diagonal_down_right(x, y, w, h)
                 self.app.message(f"Diagonal inferior direita")
+            case 'page up':
+                self.roll_up()
+                self.app.message(f"Rolar para cima")
+            case 'page down':
+                self.roll_down()
+                self.app.message(f"Rolar para baixo")
+
+            case 'f':
+                self.click()
+            case 'g':
+                self.click_right()
+            case 'd':
+                self.speed_up()
+                self.app.message(f"Aumenta velocidade: {self.acceleration}")
+            case 's':
+                self.speed_down()
+                self.app.message(f"Diminui velocidade: {self.acceleration}")
+            
             case 'c':
                 self.move_center()
                 self.app.message(f"Centro")
-            case 'z':
-                self.click_left()
-            case 'x':
-                self.click_right()            
+            
             case _:
                 pass
     
@@ -160,13 +176,19 @@ class MouseController:
         pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
 
     def speed_up(self):
-        self.acceleration = min(10, self.acceleration + 5)
+        self.acceleration = min(100, self.acceleration + 2)
     
     def speed_down(self):
-        self.acceleration = max(1, self.acceleration - 5)
+        self.acceleration = max(1, self.acceleration - 2)
 
-    def click_right(self):
+    def click(self):
         pyautogui.click()
 
-    def click_left(self):
+    def click_right(self):
         pyautogui.click(button='right')
+
+    def roll_up(self):
+        pyautogui.scroll(self.acceleration * 10)
+    
+    def roll_down(self):
+        pyautogui.scroll(-self.acceleration * 10)
