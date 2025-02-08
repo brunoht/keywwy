@@ -18,6 +18,7 @@ class MouseController:
             'alt': False,
             'shift': False
         }
+        self.action = False
         self.blocked = False
 
     def _handle_keyboard_event(self, event):
@@ -73,56 +74,102 @@ class MouseController:
         x, y = pyautogui.position()
         w, h = pyautogui.size()
 
-        match name:
-            case 'up':
-                self.move_up(x, y, w, h)
-                self.app.message(f"Cima")
-            case 'down':
-                self.move_down(x, y, w, h)
-                self.app.message(f"Baixo")
-            case 'left':
-                self.move_left(x, y, w, h)
-                self.app.message(f"Esquerda")
-            case 'right':
-                self.move_right(x, y, w, h)
-                self.app.message(f"Direita")
-            
-            case 'insert':
-                self.move_diagonal_up_left(x, y, w, h)
-                self.app.message(f"Diagonal superior esquerda")
-            case 'home':
-                self.move_diagonal_up_right(x, y, w, h)
-                self.app.message(f"Diagonal superior direita")
-            case 'delete':
-                self.move_diagonal_down_left(x, y, w, h)
-                self.app.message(f"Diagonal inferior esquerda")
-            case 'end':
-                self.move_diagonal_down_right(x, y, w, h)
-                self.app.message(f"Diagonal inferior direita")
-            case 'page up':
-                self.roll_up()
-                self.app.message(f"Rolar para cima")
-            case 'page down':
-                self.roll_down()
-                self.app.message(f"Rolar para baixo")
+        if self.action == True:
+            self.app.message(f"Ação")
+            print(f"action: {name}")
+            match name:
+                case 'insert':
+                    self.app.message(f"Canto superior esquerdo")
+                    self.move_top_left()
+                    self.action = False
+                case 'home':
+                    self.app.message(f"Centro superior")
+                    self.move_top_center()
+                    self.action = False
+                case 'page up':
+                    self.app.message(f"Canto superior direito")
+                    self.move_top_right()
+                    self.action = False
 
-            case 'f':
-                self.click()
-            case 'g':
-                self.click_right()
-            case 'd':
-                self.speed_up()
-                self.app.message(f"Aumenta velocidade: {self.acceleration}")
-            case 's':
-                self.speed_down()
-                self.app.message(f"Diminui velocidade: {self.acceleration}")
-            
-            case 'c':
-                self.move_center()
-                self.app.message(f"Centro")
-            
-            case _:
-                pass
+                case 'delete':
+                    self.app.message(f"Canto esquerdo")
+                    self.move_center_left()
+                    self.action = False
+                case 'end':
+                    self.app.message(f"Centro")
+                    self.move_center()
+                    self.action = False
+                case 'page down':
+                    self.app.message(f"Canto direito")
+                    self.move_center_right()
+                    self.action = False
+
+                case 'left':
+                    self.app.message(f"Canto inferior esquerdo")
+                    self.move_bottom_left()
+                    self.action = False
+                case 'down':
+                    self.app.message(f"Centro inferior")
+                    self.move_bottom_center()
+                    self.action = False
+                case 'right':
+                    self.app.message(f"Canto inferior direito")
+                    self.move_bottom_right()
+                    self.action = False
+
+                case _:
+                    self.action = False
+                    self.app.message(f"Ação cancelada")
+        else:
+            match name:
+                case 'up':
+                    self.move_up(x, y, w, h)
+                    self.app.message(f"Cima")
+                case 'down':
+                    self.move_down(x, y, w, h)
+                    self.app.message(f"Baixo")
+                case 'left':
+                    self.move_left(x, y, w, h)
+                    self.app.message(f"Esquerda")
+                case 'right':
+                    self.move_right(x, y, w, h)
+                    self.app.message(f"Direita")
+                
+                case 'insert':
+                    self.move_diagonal_up_left(x, y, w, h)
+                    self.app.message(f"Diagonal superior esquerda")
+                case 'home':
+                    self.move_diagonal_up_right(x, y, w, h)
+                    self.app.message(f"Diagonal superior direita")
+                case 'delete':
+                    self.move_diagonal_down_left(x, y, w, h)
+                    self.app.message(f"Diagonal inferior esquerda")
+                case 'end':
+                    self.move_diagonal_down_right(x, y, w, h)
+                    self.app.message(f"Diagonal inferior direita")
+                case 'page up':
+                    self.roll_up()
+                    self.app.message(f"Rolar para cima")
+                case 'page down':
+                    self.roll_down()
+                    self.app.message(f"Rolar para baixo")
+
+                case 'f':
+                    self.click()
+                case 'g':
+                    self.click_right()
+                case 'd':
+                    self.speed_up()
+                    self.app.message(f"Aumenta velocidade: {self.acceleration}")
+                case 's':
+                    self.speed_down()
+                    self.app.message(f"Diminui velocidade: {self.acceleration}")
+                
+                case 'a':
+                    self.action = True
+
+                case _:
+                    pass
     
     def move_up(self, current_x, current_y, screen_width, screen_height, exec=True):
         x = current_x
@@ -172,8 +219,33 @@ class MouseController:
         if exec : pyautogui.moveTo(right_x, down_y)
         return right_x, down_y
     
+    def move_center_left(self):
+        pyautogui.moveTo(self.safe_margin, pyautogui.size()[1] / 2)
+
+    def move_center_right(self):
+        pyautogui.moveTo(pyautogui.size()[0] - self.safe_margin, (pyautogui.size()[1] / 2) - self.safe_margin)
+
     def move_center(self):
         pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
+
+    def move_top_left(self):
+        pyautogui.moveTo(self.safe_margin, self.safe_margin)
+
+    def move_top_right(self):
+        pyautogui.moveTo(pyautogui.size()[0], self.safe_margin)
+
+    def move_top_center(self):
+        pyautogui.moveTo(pyautogui.size()[0] / 2, self.safe_margin)
+
+    def move_bottom_left(self):
+        pyautogui.moveTo(self.safe_margin, pyautogui.size()[1] - self.safe_margin)
+
+    def move_bottom_right(self):
+        pyautogui.moveTo(pyautogui.size()[0] - self.safe_margin, pyautogui.size()[1] - self.safe_margin)
+
+    def move_bottom_center(self):
+        pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] - self.safe_margin)
+
 
     def speed_up(self):
         self.acceleration = min(100, self.acceleration + 2)
