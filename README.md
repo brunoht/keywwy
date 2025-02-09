@@ -3,13 +3,14 @@
 ## Comandos
 
 2x CTRL - Ativa/Desativa Keywwy
+1 a 9 - Velocidade do ponteiro x 10
 
 ### Mão direita
 
-- seta cima: movimenta mouse para cima
-- seta baixo: movimenta mouse para baixo
-- seta esquerda: movimenta mouse para esquerda
-- seta direita: movimenta mouse para direita
+- :arrow_up: kmovimenta mouse para cima
+- :arrow_down: movimenta mouse para baixo
+- :arrow_left: movimenta mouse para esquerda
+- :arrow_right: movimenta mouse para direita
 - insert: diagonal superior esquerdo
 - home: diagonal superior direito
 - del: diagonal inferior esquerdo
@@ -38,4 +39,9 @@
 - d: aumento da velocidade
 - f: clique
 - g: clique (botão direito)
+
+### Mão esquerda (Ação)
+
+- f: segura clique
+- g: solta clique
 

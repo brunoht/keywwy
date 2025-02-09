@@ -8,9 +8,10 @@ import asyncio
 
 class Keywwy:
 
-    def __init__(self):
+    def __init__(self, config):
         self.app_name = "Keywwy"
-        self.window_message = "Aplicação Iniciada"
+        self.window_message = "App Started"
+        self.config = config
 
         self.root = Tk()
         self.root.title(self.app_name)
@@ -37,8 +38,7 @@ class Keywwy:
         self.root.after(10, self.make_click_through)
         self.loop = None
 
-    def message(self, message):
-        self.label.config(text=message)
+    
 
     def make_click_through(self):
         WS_EX_TRANSPARENT = 0x00000020
@@ -61,6 +61,14 @@ class Keywwy:
         icon = Icon(self.app_name, icon_image, menu=menu)
         return icon
 
+    def message(self, message, log = None):
+        self.label.config(text=message)
+        if log: self.log(log)
+
+    def log(self, message):
+        if self.config.debug: 
+            print(message)
+
     async def run(self):
         self.loop = asyncio.get_event_loop()
         self.icon = self.setup_tray()
@@ -79,7 +87,7 @@ class Keywwy:
     def force_exit(self):
         try:
             if self.icon: self.icon.stop()
-            keyboard.unhook_all()
+            self.keyboard.unhook_all()
             self.root.destroy()
         finally:
             import os
