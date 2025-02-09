@@ -14,11 +14,9 @@ class MouseController:
         self.last_key = None # Última tecla pressionada
         self.safe_margin = 5 # Margem de segurança
         self.keyboard.hook(self._handle_keyboard_event, suppress=self.active)
-        self.modifiers = {
-            'esc': False,
-        }
         self.action = False
         self.blocked = False
+        self.toggle_confirm = False
 
     def default_actions(self):
         config = self.config
@@ -67,46 +65,41 @@ class MouseController:
         return False
 
     async def handle_keypress(self, event):
-        if self.blocked: return
+        if self.blocked: 
+            return
+        
         self.blocked = True
         event_name = event.name.lower()
         self.app.log(f"key pressed: {event_name}")
-        if event_name == self.modifiers:
-            if self.modifiers[event_name] == True and self.last_key == event_name and event_name == self.config.toggle:
-                self.modifiers[event_name] = False
-                self.toggle_mode()
-            elif self.modifiers[event_name] == True:
-                self.modifiers[event_name] = False
-                self.app.message("")
-            else:
-                self.modifiers[event_name] = True
-                self.app.message(f"{event_name} pressed")
+
+        if event_name == self.config.toggle:
+            self.toggle_mode(event_name)
         else:
             self.app.message(f"")
-            self.modifiers = dict.fromkeys(self.modifiers, False)
             self.handle_action(event_name)
+
         self.last_key = event_name
-        self.app.log(f"modifiers: {self.modifiers}")
         self.blocked = False
-        return not self.active
 
     def handle_keyrelease(self, event):
         self.app.log(f"key released: {event.name.lower()}")
-        return not self.active
-
-    def toggle_mode(self):
-        self.active = not self.active
-        self.keyboard.unhook_all()
-        self.keyboard.hook(self._handle_keyboard_event, suppress=self.active)
-        if self.active:
-            self.app.message("Keywwy enabled")
-        else:
-            self.app.message("Keywwy disabled")
-        self.app.log(f"toggle mode: {self.active}")
-
+    
+    def toggle_mode(self, event_name):
+        if self.toggle_confirm and self.last_key == event_name and self.config.toggle == event_name:
+            self.active = not self.active
+            self.keyboard.unhook_all()
+            self.keyboard.hook(self._handle_keyboard_event, suppress=self.active)
+            if self.active: self.app.message("Keywwy enabled", f"toggle mode: {self.active}")
+            else: self.app.message("Keywwy disabled", f"toggle mode: {self.active}")
+            self.toggle_confirm = False
+        elif self.toggle_confirm: 
+            self.toggle_confirm = False
+        else: 
+            self.toggle_confirm = True
+        
     def handle_action(self, name):
-        if not self.active: return
-
+        if not self.active: 
+            return
         if not self.action:
             action = self.default_actions()
             if name in action: action[name]()
@@ -162,10 +155,6 @@ class MouseController:
     def action_canceled(self):
         self.action = False
         self.app.message(f"Action Canceled", log=f"action: {self.action}")
-
-    def action_toggle(self):
-        self.toggle_mode()
-        self.action = False
 
     def action_move_middle_left(self):
         self.app.message(f"Move middle left")
