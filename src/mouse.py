@@ -8,9 +8,9 @@ class MouseController:
         self.config = app.config
 
         self.keyboard = keyboard
-        self.mouse_speed = 10  # Velocidade de movimento do mouse
+        self.mouse_speed = 1  # Velocidade de movimento do mouse
         self.active = True # Estado do modo Keywwy
-        self.acceleration = 1 # Aceleração do mouse
+        self.acceleration = 10 # Aceleração do mouse
         self.last_key = None # Última tecla pressionada
         self.safe_margin = 5 # Margem de segurança
         self.keyboard.hook(self._handle_keyboard_event, suppress=self.active)
@@ -19,6 +19,42 @@ class MouseController:
         }
         self.action = False
         self.blocked = False
+
+    def default_actions(self):
+        config = self.config
+        return {
+            config.move_up: self.action_move_up,
+            config.move_down: self.action_move_down,
+            config.move_left: self.action_move_left,
+            config.move_right: self.action_move_right,
+            config.move_diagonal_up_left: self.action_move_diagonal_up_left,
+            config.move_diagonal_up_right: self.action_move_diagonal_up_right,
+            config.move_diagonal_down_left: self.action_move_diagonal_down_left,
+            config.move_diagonal_down_right: self.action_move_diagonal_down_right,
+            config.mouse_scroll_up: self.action_mouse_scroll_up,
+            config.mouse_scroll_down: self.action_mouse_scroll_down,
+            config.mouse_click: self.action_mouse_click,
+            config.mouse_click_right: self.action_mouse_click_right,
+            config.speed_up: self.action_speed_up,
+            config.speed_down: self.action_speed_down,
+            config.action: self.action_mode,
+        }
+    
+    def action_mode_actions(self):
+        config = self.config
+        return {
+            config.action_move_top_left: self.action_move_top_left,
+            config.action_move_top_center: self.action_move_top_center,
+            config.action_move_top_right: self.action_move_top_right,
+            config.action_move_middle_left: self.action_move_middle_left,
+            config.action_move_middle_center: self.action_move_middle_center,
+            config.action_move_middle_right: self.action_move_middle_right,
+            config.action_move_bottom_left: self.action_move_bottom_left,
+            config.action_move_bottom_center: self.action_move_bottom_center,
+            config.action_move_bottom_right: self.action_move_bottom_right,
+            config.action_click_hold: self.action_click_hold,
+            config.action_click_release: self.action_click_release,
+        }
 
     def _handle_keyboard_event(self, event):
         if event.event_type == keyboard.KEY_DOWN:
@@ -33,28 +69,29 @@ class MouseController:
     async def handle_keypress(self, event):
         if self.blocked: return
         self.blocked = True
-        self.app.log(f"key pressed: {event.name}")
-        if event.name in self.modifiers:
-            if self.modifiers[event.name] == True and self.last_key == event.name and event.name == self.config.toggle:
-                self.modifiers[event.name] = False
+        event_name = event.name.lower()
+        self.app.log(f"key pressed: {event_name}")
+        if event_name == self.modifiers:
+            if self.modifiers[event_name] == True and self.last_key == event_name and event_name == self.config.toggle:
+                self.modifiers[event_name] = False
                 self.toggle_mode()
-            elif self.modifiers[event.name] == True:
-                self.modifiers[event.name] = False
+            elif self.modifiers[event_name] == True:
+                self.modifiers[event_name] = False
                 self.app.message("")
             else:
-                self.modifiers[event.name] = True
-                self.app.message(f"{event.name} pressed")
+                self.modifiers[event_name] = True
+                self.app.message(f"{event_name} pressed")
         else:
             self.app.message(f"")
             self.modifiers = dict.fromkeys(self.modifiers, False)
-            self.handle_action(event.name)
-        self.last_key = event.name
+            self.handle_action(event_name)
+        self.last_key = event_name
         self.app.log(f"modifiers: {self.modifiers}")
         self.blocked = False
         return not self.active
 
     def handle_keyrelease(self, event):
-        self.app.log(f"key released: {event.name}")
+        self.app.log(f"key released: {event.name.lower()}")
         return not self.active
 
     def toggle_mode(self):
@@ -70,79 +107,13 @@ class MouseController:
     def handle_action(self, name):
         if not self.active: return
 
-        x, y = pyautogui.position()
-        w, h = pyautogui.size()
-
-        if self.action == True: # ACTION MODE
-            
-            match name:
-                case self.config.action_move_top_left:
-                    self.action_move_top_left()
-                case self.config.action_move_top_center:
-                    self.action_move_top_center()
-                case self.config.action_move_top_right:
-                    self.action_move_top_right()
-                    
-                case self.config.action_move_middle_left:
-                    self.action_move_middle_left()
-                case self.config.action_move_middle_center:
-                    self.action_move_middle_center()
-                case self.config.action_move_middle_right:
-                    self.action_move_middle_right()
-
-                case self.config.action_move_bottom_left:
-                    self.action_move_bottom_left()
-                case self.config.action_move_bottom_center:
-                    self.action_move_bottom_center()
-                case self.config.action_move_bottom_right:
-                    self.action_move_bottom_right()
-
-                case self.config.action_click_hold:
-                    self.action_click_hold()
-
-                case self.config.action_click_release:
-                    self.action_click_release()
-
-                case _:
-                    self.action_canceled()
+        if not self.action:
+            action = self.default_actions()
+            if name in action: action[name]()
         else:
-            match name:
-                case self.config.move_up:
-                    self.action_move_up(x, y, w, h)
-                case self.config.move_down:
-                    self.action_move_down(x, y, w, h)
-                case self.config.move_left:
-                    self.action_move_left(x, y, w, h)
-                case self.config.move_right:
-                    self.action_move_right(x, y, w, h)
-                
-                case self.config.move_diagonal_up_left:
-                    self.action_move_diagonal_up_left(x, y, w, h)
-                case self.config.move_diagonal_up_right:
-                    self.action_move_diagonal_up_right(x, y, w, h)
-                case self.config.move_diagonal_down_left:
-                    self.action_move_diagonal_down_left(x, y, w, h)
-                case self.config.move_diagonal_down_right:
-                    self.action_move_diagonal_down_right(x, y, w, h)
-                case self.config.mouse_scroll_up:
-                    self.action_mouse_scroll_up()
-                case self.config.mouse_scroll_down:
-                    self.action_mouse_scroll_down()
-
-                case self.config.mouse_click:
-                    self.action_mouse_click()
-                case self.config.mouse_click_right:
-                    self.action_mouse_click_right()
-                case self.config.speed_up:
-                    self.action_speed_up()
-                case self.config.speed_down:
-                    self.action_speed_down()
-                
-                case self.config.action:
-                    self.action_mode()
-
-                case _:
-                    pass
+            action = self.action_mode_actions()
+            if name in action: action[name]()
+            else: self.action_canceled()
     
     def move_up(self, current_x, current_y, screen_width, screen_height):
         x = current_x
@@ -183,7 +154,7 @@ class MouseController:
         right_x, right_y = self.move_right(current_x, current_y, screen_width, screen_height)
         down_x, down_y = self.move_down(current_x, current_y, screen_width, screen_height)
         return right_x, down_y
-    
+
     def action_mode(self):
         self.action = True
         self.app.message(message="Action Mode", log=f"action: {self.action}")
@@ -191,6 +162,10 @@ class MouseController:
     def action_canceled(self):
         self.action = False
         self.app.message(f"Action Canceled", log=f"action: {self.action}")
+
+    def action_toggle(self):
+        self.toggle_mode()
+        self.action = False
 
     def action_move_middle_left(self):
         self.app.message(f"Move middle left")
@@ -258,49 +233,65 @@ class MouseController:
         pyautogui.click(button='right')
         self.action = False
 
-    def action_move_up(self, current_x, current_y, screen_width, screen_height):
+    def action_move_up(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move up")
         x, y = self.move_up(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
 
-    def action_move_down(self, current_x, current_y, screen_width, screen_height):
+    def action_move_down(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move down")
         x, y = self.move_down(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
     
-    def action_move_left(self, current_x, current_y, screen_width, screen_height):
+    def action_move_left(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Mode left")
         x, y = self.move_left(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
 
-    def action_move_right(self, current_x, current_y, screen_width, screen_height):
+    def action_move_right(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move right")
         x, y = self.move_right(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
 
-    def action_move_diagonal_up_left(self, current_x, current_y, screen_width, screen_height):
+    def action_move_diagonal_up_left(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move diagonal up left")
         x, y = self.move_diagonal_up_left(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
 
-    def action_move_diagonal_up_right(self, current_x, current_y, screen_width, screen_height):
+    def action_move_diagonal_up_right(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move diagonal up right")
         x, y = self.move_diagonal_up_right(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
     
-    def action_move_diagonal_down_left(self, current_x, current_y, screen_width, screen_height):
+    def action_move_diagonal_down_left(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Diagonal inferior esquerda")
         x, y = self.move_diagonal_down_left(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
         self.action = False
     
-    def action_move_diagonal_down_right(self, current_x, current_y, screen_width, screen_height):
+    def action_move_diagonal_down_right(self):
+        current_x, current_y = pyautogui.position()
+        screen_width, screen_height = pyautogui.size()
         self.app.message(f"Move diagonal down right")
         x, y = self.move_diagonal_down_right(current_x, current_y, screen_width, screen_height)
         pyautogui.moveTo(x, y)
