@@ -1,6 +1,30 @@
 # Keywwy
 
-## Comandos
+## Installation
+
+```shell
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment (Windows)
+.\venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+## Running
+
+```shell
+# Activate virtual environment (if not already activated)
+.\venv\Scripts\activate
+
+# Run the application
+python app.py
+```
+
+
+## Commands
 
 2x CTRL - Ativa/Desativa Keywwy
 1 a 9 - Velocidade do ponteiro x 10
