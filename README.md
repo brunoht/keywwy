@@ -21,10 +21,10 @@ This is particularly useful for users who prefer keyboard-based navigation or wa
 
 ```shell
 # Create virtual environment
-python -m venv keywyy
+python -m venv keywwy
 
 # Activate virtual environment (Windows)
-.\keywyy\Scripts\activate
+.\keywwy\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ```shell
 # Activate virtual environment (if not already activated)
-.\keywyy\Scripts\activate
+.\keywwy\Scripts\activate
 
 # Run the application
 python app.py
@@ -44,14 +44,14 @@ python app.py
 
 ### Error during installation
 
-> O arquivo ...\keywyy\Scripts\Activate.ps1 não pode ser carregado porque a execução de scripts foi desabilitada neste sistema. Para obter mais informações, consulte about_Execution_Policies
+> O arquivo ...\keywwy\Scripts\Activate.ps1 não pode ser carregado porque a execução de scripts foi desabilitada neste sistema. Para obter mais informações, consulte about_Execution_Policies
 
 This error occurs because PowerShell's execution policy is preventing scripts from running. Here are the different ways to activate a virtual environment in Windows:
 
 #### Using Command Prompt (cmd.exe)
 
 ```cmd
-.\keywyy\Scripts\activate.bat
+.\keywwy\Scripts\activate.bat
 ```
 
 #### Using PowerShell
@@ -65,5 +65,5 @@ Set-ExecutionPolicy RemoteSigned
 Then you can activate using
 
 ```shell
-.\keywyy\Scripts\Activate.ps1
+.\keywwy\Scripts\Activate.ps1
 ```
