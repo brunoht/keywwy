@@ -28,6 +28,8 @@ python -m venv keywwy
 
 # Install dependencies
 pip install -r requirements.txt
+
+cp .env.example .env
 ```
 
 ## Running
