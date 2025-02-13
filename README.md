@@ -1,13 +1,30 @@
 # Keywwy
 
+Keywyy is an application that allows you to control your mouse cursor using keyboard shortcuts. It's inspired by a similar tool called Keytty.
+
+The core functionality is implemented using:
+
+1. The keyboard library for keyboard event handling
+2. Custom mouse control logic in mouse.py
+3. Application configuration in config.py
+4. The main application loop in app.py
+
+The application provides a keyboard-driven interface where you can:
+
+* Move the mouse cursor using keyboard shortcuts
+* Click, double-click and scroll using keyboard commands
+* Toggle the control mode by pressing CTRL twice
+
+This is particularly useful for users who prefer keyboard-based navigation or want to minimize mouse usage.
+
 ## Installation
 
 ```shell
 # Create virtual environment
-python -m venv venv
+python -m venv keywyy
 
 # Activate virtual environment (Windows)
-.\venv\Scripts\activate
+.\keywyy\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -17,55 +34,36 @@ pip install -r requirements.txt
 
 ```shell
 # Activate virtual environment (if not already activated)
-.\venv\Scripts\activate
+.\keywyy\Scripts\activate
 
 # Run the application
 python app.py
 ```
 
+## Troubleshooting
 
-## Commands
+### Error during installation
 
-2x CTRL - Ativa/Desativa Keywwy
-1 a 9 - Velocidade do ponteiro x 10
+> O arquivo ...\keywyy\Scripts\Activate.ps1 não pode ser carregado porque a execução de scripts foi desabilitada neste sistema. Para obter mais informações, consulte about_Execution_Policies
 
-### Mão direita
+This error occurs because PowerShell's execution policy is preventing scripts from running. Here are the different ways to activate a virtual environment in Windows:
 
-- :arrow_up: kmovimenta mouse para cima
-- :arrow_down: movimenta mouse para baixo
-- :arrow_left: movimenta mouse para esquerda
-- :arrow_right: movimenta mouse para direita
-- insert: diagonal superior esquerdo
-- home: diagonal superior direito
-- del: diagonal inferior esquerdo
-- end: diagonal inferior direito
-- page up: rolagem para cima
-- page down: rolagem para baixo
+#### Using Command Prompt (cmd.exe)
 
-### Mão direita (Ação)
+```cmd
+.\keywyy\Scripts\activate.bat
+```
 
-- insert: posiciona mouse canto superior esquerdo
-- home: posiciona mouse centro superior
-- page up: posiciona mouse canto superior direito
+#### Using PowerShell
 
-- del: posiciona mouse centro inferior direito
-- end: posiciona mouse centro inferior
-- page down: posiciona mouse centro inferior direito
+First, you need to allow script execution. Run PowerShell as Administrator and execute:
 
-- seta esquerda: posiciona mouse canto inferior esquerdo
-- seta baixo: posiciona mouse centro inferior
-- seta direita: posiciona mouse canto inferior direito
+```shell
+Set-ExecutionPolicy RemoteSigned
+```
 
-### Mão esquerda
+Then you can activate using
 
-- a: aciona uma ação
-- s: redução da velocidade
-- d: aumento da velocidade
-- f: clique
-- g: clique (botão direito)
-
-### Mão esquerda (Ação)
-
-- f: segura clique
-- g: solta clique
-
+```shell
+.\keywyy\Scripts\Activate.ps1
+```
